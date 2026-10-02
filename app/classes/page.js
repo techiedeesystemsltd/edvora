@@ -1,0 +1,18 @@
+"use client";
+import {useEffect,useState} from 'react';
+import AppShell from '../../components/AppShell';
+import {Icon} from '../../components/Brand';
+import {LoadingState,ErrorState,EmptyState} from '../../components/DataStates';
+import {useSchoolContext} from '../../lib/useSchoolContext';
+
+export default function Classes(){
+ const {supabase,school,schoolId,role,loading,error,reload}=useSchoolContext();
+ const [classes,setClasses]=useState([]),[name,setName]=useState(''),[level,setLevel]=useState(''),[show,setShow]=useState(false),[notice,setNotice]=useState(''),[saving,setSaving]=useState(false);
+ async function load(){if(!supabase||!schoolId)return;const {data,error}=await supabase.from('classes').select('*').eq('school_id',schoolId).order('name');if(error)throw error;setClasses(data||[])}
+ useEffect(()=>{load().catch(e=>setNotice(e.message))},[supabase,schoolId]);
+ async function add(e){e.preventDefault();setSaving(true);setNotice('');try{const r=await fetch('/api/classes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({school_id:schoolId,name,level})});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'We could not create this class.');setName('');setLevel('');setShow(false);setNotice(`Class ${j.class?.name||name} created successfully.`);await load()}catch(err){setNotice(err.message)}finally{setSaving(false)}}
+ if(loading)return <LoadingState label="Loading classes…"/>;
+ if(error)return <ErrorState message={error} onRetry={reload}/>;
+ const canManage=['owner','admin'].includes(role);
+ return <AppShell active="Classes" schoolName={school?.name} role={role}><div className="app-page-head"><div><h1>Classes</h1><p>Set up the academic structure teachers and students work within.</p></div>{canManage&&<div className="app-head-actions"><button className="app-button primary" onClick={()=>setShow(!show)}><Icon name="plus" size={15}/> Add class</button></div>}</div>{notice&&<div className="notice">{notice}</div>}{show&&canManage&&<div className="app-panel" style={{marginBottom:14}}><div className="app-panel-head"><h2>Create class</h2><span>Class names must be unique within this school.</span></div><form onSubmit={add} className="data-form"><div className="form-label"><label>Class name</label><input required placeholder="e.g. JSS 2A" value={name} onChange={e=>setName(e.target.value)}/></div><div className="form-label"><label>Level (optional)</label><input placeholder="e.g. JSS 2" value={level} onChange={e=>setLevel(e.target.value)}/></div><div className="form-actions"><button type="button" className="app-button" onClick={()=>setShow(false)}>Cancel</button><button className="app-button primary" disabled={saving}>{saving?'Creating…':'Create class'}</button></div></form></div>}<div className="app-panel"><div className="app-panel-head"><h2>Classes</h2><span>{classes.length} configured</span></div><div className="app-table-wrap"><table className="app-table"><thead><tr><th>Class</th><th>Level</th><th>Created</th><th>Status</th></tr></thead><tbody>{classes.length?classes.map(c=><tr key={c.id}><td><strong>{c.name}</strong></td><td>{c.level||'-'}</td><td>{c.created_at?new Date(c.created_at).toLocaleDateString():'-'}</td><td><span className="status good">Active</span></td></tr>):<tr><td colSpan="4"><EmptyState title="No classes yet" description={canManage?'Create your first class to start organizing students and academic work.':'No classes have been configured yet.'} action={canManage?<button className="app-button primary" onClick={()=>setShow(true)}>Add class</button>:null}/></td></tr>}</tbody></table></div></div></AppShell>
+}

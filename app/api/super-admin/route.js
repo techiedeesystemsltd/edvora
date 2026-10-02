@@ -1,0 +1,5 @@
+import {NextResponse} from 'next/server';
+import {createServerSupabase} from '../../../lib/supabase-server';
+import {createAdminClient} from '../../../lib/supabase-admin';
+async function actor(){const s=createServerSupabase();const {data:{user}}=await s.auth.getUser();if(!user)return null;const {data:p}=await s.from('platform_admins').select('user_id').eq('user_id',user.id).maybeSingle();return p?user:null}
+export async function PATCH(req){try{const user=await actor();if(!user)return NextResponse.json({error:'Platform administrator access is required.'},{status:403});const body=await req.json();const schoolId=String(body.schoolId||'');const status=String(body.status||'');if(!schoolId||!['active','trialing','suspended','cancelled'].includes(status))return NextResponse.json({error:'Invalid school status.'},{status:400});const admin=createAdminClient();const {error}=await admin.from('schools').update({status,updated_at:new Date().toISOString()}).eq('id',schoolId);if(error)throw error;return NextResponse.json({ok:true})}catch(e){return NextResponse.json({error:e.message||'Update failed.'},{status:500})}}

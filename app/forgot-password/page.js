@@ -1,0 +1,6 @@
+"use client";
+import Link from 'next/link';
+import {useState} from 'react';
+import {createClient} from '../../lib/supabase';
+import {Logo} from '../../components/Brand';
+export default function ForgotPassword(){const [email,setEmail]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);async function submit(e){e.preventDefault();setBusy(true);const {error}=await createClient().auth.resetPasswordForEmail(email,{redirectTo:`${window.location.origin}/auth/callback?next=/reset-password`});setNotice(error?error.message:'If an Edvora account exists for that email, reset instructions have been sent.');setBusy(false)}return <main className="auth-page"><div className="auth-card"><Logo/><h1>Reset your password</h1><p>Enter your account email and we will send a secure reset link.</p>{notice&&<div className="notice">{notice}</div>}<form onSubmit={submit} className="data-form"><div className="form-label full"><label>Email</label><input type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}/></div><div className="form-actions"><button className="app-button primary" disabled={busy}>{busy?'Sending…':'Send reset link'}</button></div></form><p style={{marginTop:18}}><Link href="/login">Back to login</Link></p></div></main>}

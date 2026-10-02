@@ -1,0 +1,6 @@
+"use client";
+import {useEffect,useState} from 'react';
+import {useSearchParams} from 'next/navigation';
+import Link from 'next/link';
+import {createClient} from '../../lib/supabase';
+export default function AcceptInvitation(){const params=useSearchParams();const token=params.get('token');const [status,setStatus]=useState('Checking invitation…'),[error,setError]=useState('');useEffect(()=>{(async()=>{try{if(!token)throw new Error('Invitation token is missing.');const {data:{user}}=await createClient().auth.getUser();if(!user){setStatus('Sign in with the invited email to continue.');return}const r=await fetch('/api/invitations/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});const j=await r.json();if(!r.ok)throw new Error(j.error);setStatus('Invitation accepted. Redirecting…');window.location.assign('/dashboard')}catch(e){setError(e.message);setStatus('Invitation could not be accepted.')}})()},[token]);return <main className="auth-page"><div className="auth-card"><Link href="/" className="auth-logo">Edvora</Link><h1>{status}</h1>{error&&<p className="notice error">{error}</p>}<p>Team invitations are tied to the invited email address and expire after seven days.</p><Link className="app-button primary" href="/login">Go to login</Link></div></main>}

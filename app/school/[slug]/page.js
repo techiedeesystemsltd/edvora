@@ -1,0 +1,5 @@
+import {getPublicSchool} from '../../../components/PublicSchoolSite';
+import PublicSchoolSite from '../../../components/PublicSchoolSite';
+export const dynamic='force-dynamic'; export const revalidate=0;
+export async function generateMetadata({params}){try{const d=await getPublicSchool(params.slug);if(!d?.school)return {title:'School | Edvora'};return {title:d.web?.site_title||d.school.name,description:d.web?.meta_description||d.web?.subheadline||`Official website of ${d.school.name}`,openGraph:{title:d.web?.site_title||d.school.name,description:d.web?.meta_description||d.web?.subheadline||`Official website of ${d.school.name}`,images:d.logoUrl?[d.logoUrl]:[]}}}catch{return {title:'School | Edvora'}}}
+export default async function Page({params}){try{return <PublicSchoolSite data={await getPublicSchool(params.slug)}/>}catch(e){return <main className="public-school"><div className="public-school-inner"><h1>School website unavailable</h1><p>{e?.message||'The school website could not be loaded right now.'}</p></div></main>}}
