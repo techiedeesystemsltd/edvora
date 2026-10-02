@@ -7,11 +7,71 @@ import {Icon,Logo} from '../../components/Brand';
 
 export default function Dashboard(){
  const [school,setSchool]=useState(null),[stats,setStats]=useState({students:0,classes:0,fees:0}),[loading,setLoading]=useState(true),[error,setError]=useState('');
- useEffect(()=>{let active=true;(async()=>{try{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user){window.location.assign('/login');return}const preferredSchoolId=typeof window!=='undefined'?localStorage.getItem('edvora.currentSchoolId'):null;
-const membershipQuery=supabase.from('school_memberships').select('school_id,schools(id,name,slug,logo_path,currency,timezone,status),created_at').eq('user_id',user.id).eq('status','active');
-const {data:membership,error:membershipError}=preferredSchoolId
-  ? await membershipQuery.eq('school_id',preferredSchoolId).maybeSingle()
-  : (await membershipQuery.order('created_at',{ascending:false}).limit(1).maybeSingle());if(membershipError)throw membershipError;if(!membership){window.location.assign('/onboarding');return}if(!active)return;localStorage.setItem('edvora.currentSchoolId',membership.school_id);setSchool(membership.schools);const [{count:students},{count:classes},{data:fees}]=await Promise.all([supabase.from('students').select('*',{count:'exact',head:true}).eq('school_id',membership.school_id),supabase.from('classes').select('*',{count:'exact',head:true}).eq('school_id',membership.school_id),supabase.from('fee_invoices').select('amount,amount_paid').eq('school_id',membership.school_id)]);setStats({students:students||0,classes:classes||0,fees:(fees||[]).reduce((a,x)=>a+Number(x.amount||0)-Number(x.amount_paid||0),0)});}catch(err){if(active)setError(err?.message||'Unable to load your workspace.')}finally{if(active)setLoading(false)}})();return()=>{active=false}},[]);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          window.location.assign('/login');
+          return;
+        }
+
+        const urlParamSchoolId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('school') : null;
+        const preferredSchoolId = urlParamSchoolId || (typeof window !== 'undefined' ? localStorage.getItem('edvora.currentSchoolId') : null);
+        const membershipQuery = () => supabase
+          .from('school_memberships')
+          .select('school_id,schools(id,name,slug,logo_path,currency,timezone,status),created_at')
+          .eq('user_id', user.id)
+          .eq('status', 'active');
+
+        let membership = null;
+        if (preferredSchoolId) {
+          const { data, error: membershipError } = await membershipQuery().eq('school_id', preferredSchoolId).maybeSingle();
+          if (!membershipError && data) membership = data;
+        }
+
+        if (!membership) {
+          const { data, error: membershipError } = await membershipQuery().order('created_at', { ascending: false }).limit(1).maybeSingle();
+          if (membershipError) throw membershipError;
+          membership = data;
+        }
+
+        if (!membership) {
+          if (typeof window !== 'undefined') localStorage.removeItem('edvora.currentSchoolId');
+          window.location.assign('/onboarding');
+          return;
+        }
+
+        if (!active) return;
+        localStorage.setItem('edvora.currentSchoolId', membership.school_id);
+        setSchool(membership.schools);
+
+        try {
+          const [{ count: students }, { count: classes }, { data: fees }] = await Promise.all([
+            supabase.from('students').select('*', { count: 'exact', head: true }).eq('school_id', membership.school_id),
+            supabase.from('classes').select('*', { count: 'exact', head: true }).eq('school_id', membership.school_id),
+            supabase.from('fee_invoices').select('amount,amount_paid').eq('school_id', membership.school_id)
+          ]);
+          if (active) {
+            setStats({
+              students: students || 0,
+              classes: classes || 0,
+              fees: (fees || []).reduce((a, x) => a + Number(x.amount || 0) - Number(x.amount_paid || 0), 0)
+            });
+          }
+        } catch (statsErr) {
+          console.warn('Unable to load full dashboard stats:', statsErr);
+        }
+      } catch (err) {
+        if (active) setError(err?.message || 'Unable to load your workspace.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
  async function logout(){try{await createClient().auth.signOut()}finally{window.location.assign('/login')}}
  if(loading)return <div className="loading-page"><Logo/><div className="loading-bar"><span/></div></div>;
  if(error)return <main className="error-page"><div className="error-page-card"><h1>Workspace unavailable.</h1><p>{error}</p><div className="error-page-actions"><button className="app-button primary" onClick={()=>window.location.reload()}>Try again</button><button className="app-button" onClick={logout}>Sign out</button></div></div></main>;
