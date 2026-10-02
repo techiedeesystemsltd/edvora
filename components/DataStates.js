@@ -1,0 +1,3 @@
+export function LoadingState({label='Loading…'}) { return <div className="data-state"><div className="edvora-loading"><img src="/favicon.png" alt="Edvora"/><strong>{label}</strong></div></div>; }
+export function ErrorState({message,onRetry}) { return <div className="data-state error-state"><img src="/favicon.png" alt="Edvora" className="loading-e-compact"/><strong>Something went wrong</strong><p>{message}</p>{onRetry&&<button className="app-button" onClick={onRetry}>Try again</button>}</div>; }
+export function EmptyState({title='Nothing here yet',description,action}) { return <div className="data-state empty-state"><strong>{title}</strong>{description&&<p>{description}</p>}{action}</div>; }
