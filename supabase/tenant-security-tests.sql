@@ -1,0 +1,24 @@
+-- Edvora tenant-security test checklist.
+-- Run these tests in a controlled Supabase test project with two schools,
+-- two admin users, one parent and one student account. Replace UUIDs below.
+-- These are intentionally explicit checks rather than production data changes.
+--
+-- Expected outcomes:
+-- 1. School A admin SELECT students with school_id=School B -> 0 rows.
+-- 2. School A admin SELECT Parent IDs for School B -> 0 rows.
+-- 3. Parent A SELECT students -> only linked children in the parent's school(s).
+-- 4. Parent A SELECT student_parent_link_codes -> 0 rows.
+-- 5. Student A SELECT another student's attendance/results/invoices -> 0 rows.
+-- 6. Teacher A INSERT attendance for an unassigned class -> rejected.
+-- 7. Teacher A INSERT score for an assessment in an unassigned class -> rejected.
+-- 8. School A INSERT a student with class_id from School B -> rejected by tenant trigger.
+-- 9. School A INSERT an invoice for a School B student -> rejected by tenant trigger.
+-- 10. Parent ID from School B cannot be used to expose School A data. It creates only
+--     the exact guardian relationship represented by the code and subsequent reads
+--     remain subject to school-scoped linked-record RLS.
+-- 11. Rotating a Parent ID invalidates the old code because only the active hash is used.
+-- 12. Public school pages are readable anonymously only when website_settings.is_published=true
+--     and the school status is active/trialing.
+-- 13. Unpublished website contact submission is rejected.
+-- 14. Duplicate Paystack webhook provider references do not create duplicate payments.
+-- 15. Membership updates cannot promote a browser user to owner.

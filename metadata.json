@@ -1,0 +1,8 @@
+{
+  "name": "Edvora",
+  "description": "Smart infrastructure for modern schools, connecting administration, academics, examinations, communication and payments.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

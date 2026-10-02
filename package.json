@@ -3,7 +3,7 @@
   "version": "1.8.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "test:smoke": "node scripts/smoke-test.mjs",
@@ -11,6 +11,7 @@
     "test:syntax": "node scripts/v18-syntax-check.mjs",
     "test:v18": "node tests/v18-production-checks.mjs",
     "test:v22": "node tests/v22-production-checks.mjs",
+    "test:day1": "node tests/day1-acceptance.mjs",
     "test:live": "node scripts/v22-live-test.mjs"
   },
   "dependencies": {
