@@ -12,6 +12,7 @@
     "test:v18": "node tests/v18-production-checks.mjs",
     "test:v22": "node tests/v22-production-checks.mjs",
     "test:day1": "node tests/day1-acceptance.mjs",
+    "test:day1:full": "node scripts/day1-full-suite.mjs",
     "test:live": "node scripts/v22-live-test.mjs"
   },
   "dependencies": {
