@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useEffect,useState} from 'react';
 import {createClient} from '../../lib/supabase';
 import AppShell from '../../components/AppShell';
-import {Icon,Logo} from '../../components/Brand';
+import { Icon, Logo, EdvoraLoader } from '../../components/Brand';
 
 export default function Dashboard(){
  const [school,setSchool]=useState(null),[stats,setStats]=useState({students:0,classes:0,fees:0}),[loading,setLoading]=useState(true),[error,setError]=useState('');
@@ -73,7 +73,7 @@ export default function Dashboard(){
     return () => { active = false; };
   }, []);
  async function logout(){try{await createClient().auth.signOut()}finally{window.location.assign('/login')}}
- if(loading)return <div className="loading-page"><Logo/><div className="loading-bar"><span/></div></div>;
+ if(loading)return <div className="loading-page"><EdvoraLoader label="Loading school workspace…" size={48} /></div>;
  if(error)return <main className="error-page"><div className="error-page-card"><h1>Workspace unavailable.</h1><p>{error}</p><div className="error-page-actions"><button className="app-button primary" onClick={()=>window.location.reload()}>Try again</button><button className="app-button" onClick={logout}>Sign out</button></div></div></main>;
  return <AppShell active="Overview" schoolName={school?.name} onLogout={logout}>
   <div className="app-page-head"><div><h1>Good morning, Admin</h1><p>Here’s what’s happening across {school?.name} today.</p></div><div className="app-head-actions"><button className="app-button">This term</button><Link className="app-button primary" href="/students"><Icon name="plus" size={15}/> Add student</Link></div></div>

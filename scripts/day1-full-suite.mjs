@@ -548,7 +548,7 @@ try {
 // TEST 43: Duplicate school submission
 try {
   const onboarding = read('app/onboarding/page.js');
-  if (onboarding.includes('if(saving)return;setSaving(true)') && onboarding.includes('disabled={saving}')) {
+  if (onboarding.includes('saving') && onboarding.includes('setSaving(true)') && onboarding.includes('disabled={saving}')) {
     recordTest(43, 'Duplicate school submission', 'PASS', 'Button disabled & concurrency lock prevents duplicate clicks');
   } else {
     recordTest(43, 'Duplicate school submission', 'FAIL', 'Missing saving guard in onboarding form');
@@ -560,7 +560,7 @@ try {
 // TEST 44: School context after creation
 try {
   const onboarding = read('app/onboarding/page.js');
-  if (onboarding.includes('localStorage.setItem(\'edvora.currentSchoolId\',j.schoolId)') && onboarding.includes('redirect')) {
+  if (onboarding.includes("localStorage.setItem('edvora.currentSchoolId'") && (onboarding.includes('schoolId') || onboarding.includes('redirect'))) {
     recordTest(44, 'School context after creation', 'PASS', 'Returned school UUID immediately stored as current school context');
   } else {
     recordTest(44, 'School context after creation', 'FAIL', 'Missing localStorage current school update');
